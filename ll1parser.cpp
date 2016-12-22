@@ -4,7 +4,7 @@
 
 LL1Parser::LL1Parser(){
 	grammar = new Grammar();
-	error = "ERROR";
+	_error = "ERROR";
 	EOS = "EOS";
 }
 
@@ -29,18 +29,19 @@ bool LL1Parser::setGrammar(Grammar *gram){
 		}
 	}
 
-	error = "ERROR";
-	if (std::find(Terminals.begin(),Terminals.end(),error)!=Terminals.end() and std::find(Variables.begin(),Variables.end(),error)!=Variables.end()){
+	_error = "ERROR";
+	if (std::find(Terminals.begin(),Terminals.end(),_error)!=Terminals.end() and std::find(Variables.begin(),Variables.end(),_error)!=Variables.end()){
 		for (int i = 1; i>0; i++){
 			std::stringstream ss;
 			ss<<"ERROR"<<i;
-			error = ss.str();
-			if (std::find(Terminals.begin(),Terminals.end(),error)==Terminals.end() and std::find(Variables.begin(),Variables.end(),error)!=Variables.end()){
+			_error = ss.str();
+			if (std::find(Terminals.begin(),Terminals.end(),_error)==Terminals.end() and std::find(Variables.begin(),Variables.end(),_error)!=Variables.end()){
 				break;
 			}
 		}
 	}
 	CreateTable();
+	return true;
 }
 
 bool LL1Parser::CreateTable(){
@@ -48,10 +49,11 @@ bool LL1Parser::CreateTable(){
 	for (auto m = Variables.begin(); m < Variables.end(); m++){
 		table.push_back({});
 		for(auto n = Terminals.begin(); n < Terminals.end(); n++){
-			word solution = {error};
+			word solution = {_error};
 			auto rules = grammar->GetRules()[*m];
 			for (auto i = rules.begin(); i < rules.end(); i++){
 				if (i->empty()){
+					solution = *i;
 					continue;
 				}
 				if (i->front()==*n){
@@ -61,22 +63,25 @@ bool LL1Parser::CreateTable(){
 			}
 			table.back().push_back(solution);
 		}
-		table.back().push_back({error});
+		//EOS
+		table.back().push_back(epsilonable(*m));
 	}
 	return true;
 }
 
 bool LL1Parser::Print(std::ostream &out){
 	out << "\t|";
-	for (int i = 0; i < Terminals.size();i++){
+	for (unsigned int i = 0; i < Terminals.size();i++){
 		out<< Terminals.at(i)<<"\t | ";
 	}
 	out << EOS<<std::endl;
-
-	for (int i = 0; i < Variables.size(); i++){
+	for (unsigned int i = 0; i < Variables.size(); i++){
 		out << Variables.at(i)<<"\t | ";
-		for(int j = 0; j < Terminals.size(); j++){
+		for(unsigned int j = 0; j < Terminals.size(); j++){
 			word rule = table.at(i).at(j);
+			if(rule.empty()){
+				out<<'\t';
+			}
 			for(auto x = rule.begin(); x < rule.end(); x++){
 				out <<" "<<*x;
 			}
@@ -84,26 +89,43 @@ bool LL1Parser::Print(std::ostream &out){
 
 		}
 
-		out << table.at(i).back().front()<<std::endl;
+		word ending = table.at(i).back();
+		if (ending.empty()){
+			out<<'\t';
+		}
+		for(auto symb = ending.begin(); symb != ending.end(); symb++){
+			out<<*symb<< " ";
+		}
+		out<<std::endl;
 	}
 	return true;
 }
 
 bool LL1Parser::Parse(word toParse){
-	if (toParse.empty()){
-		std::cout<<"EMPTY PARSING NOT YET IMPLEMENTED"<<std::endl;
-		return false;
-	}
 	std::vector<symbol> Stack;
+	Stack.push_back(EOS);
 	Stack.push_back(grammar->GetStart());
+	toParse.push_back(EOS);
 
 	word::iterator sym = toParse.begin();
 	while(!Stack.empty()){
+		/*
+		std::cout<<"String: ";
+		for(auto i = sym; i!= toParse.end(); i++){
+			std::cout<<*i <<" ";
+		}
+		std::cout<<std::endl<<"Stack: ";
+		for(auto i = Stack.begin(); i != Stack.end(); i++){
+			std::cout << *i<<" ";
+		}
+		std::cout<<std::endl;
+		*/
+
 		if(sym == toParse.end()){
 			return false;
 		}
 		symbol top = Stack.back();
-		if(grammar->IsTerminal(top)){
+		if(grammar->IsTerminal(top) or top == EOS){
 			if(top != *sym){
 				return false;
 			}
@@ -114,7 +136,7 @@ bool LL1Parser::Parse(word toParse){
 			int m = std::find(Variables.begin(),Variables.end(),top) - Variables.begin();
 			int n = std::find(Terminals.begin(),Terminals.end(),*sym) - Terminals.begin();
 			word rule = table.at(m).at(n);
-			word toCheck={error};
+			word toCheck={_error};
 			if (rule == toCheck){
 				return false;
 			}
@@ -129,8 +151,37 @@ bool LL1Parser::Parse(word toParse){
 			return false;
 		}
 	}
-	if(toParse.empty()){
-		return false;
-	}
 	return true;
+}
+
+word LL1Parser::epsilonable(symbol s){
+	if(grammar->IsRule(s,{})){
+		return {};
+	}
+	std::vector<word> Rules = grammar->GetRules()[s];
+	std::vector<word> possibleRules = {};
+
+	for(std::vector<word>::iterator word = Rules.begin(); word != Rules.end(); word++){
+		for(word::iterator sym = word->begin(); sym != word->end(); word++){
+			if(grammar->IsTerminal(*sym)){
+				break;
+			}
+			if(sym == word->end()-1){
+				possibleRules.push_back(*word);
+			}
+		}
+	}
+
+	for(std::vector<word>::iterator word = possibleRules.begin(); word != possibleRules.end(); word++){
+		for(word::iterator sym = word->begin(); sym != word->end(); sym ++){
+			if(epsilonable(*sym).front() == _error){
+				break;
+			}
+			if(sym == word->end()-1){
+				return *word;
+			}
+		}
+	}
+
+	return {_error};
 }

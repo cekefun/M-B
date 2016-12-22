@@ -33,9 +33,10 @@ class LL1Parser{
 		*/
 
 	private:
+		word epsilonable(symbol);
 		bool CreateTable();
 		Grammar *grammar;
-		symbol error;
+		symbol _error;
 		symbol EOS;
 		std::vector<symbol> Variables;
 		std::vector<symbol> Terminals;
