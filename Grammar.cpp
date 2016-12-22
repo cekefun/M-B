@@ -144,51 +144,57 @@ bool Grammar::ParseGrammar(std::string filename){
 }
 
 bool Grammar::SaveGrammar(std::string filename){
+
+	namespace pt = boost::property_tree;
 	boost::property_tree::ptree root;
-	boost::property_tree::ptree GrammarTree;
-	boost::property_tree::ptree VariablesTree;
-	boost::property_tree::ptree TerminalsTree;
-	boost::property_tree::ptree RuleTrees;
 
-	for (auto i=Variables.begin(); i!=Variables.end(); i++){
-		boost::property_tree::ptree temp;
-		temp.put("",*i);
-		VariablesTree.push_back(std::make_pair("",temp));
+	pt::ptree variables;
+	for(size_t i = 0; i < this->Variables.size(); i++){
+
+		pt::ptree variable;
+		variable.put("",this->Variables[i]);
+
+		variables.push_back(std::make_pair("",variable));
+
 	}
-	for (auto i=Terminals.begin(); i!=Terminals.end(); i++){
-		boost::property_tree::ptree temp;
-		temp.put("",*i);
-		TerminalsTree.push_back(std::make_pair("",temp));
+	root.add_child("Variables",variables);
+
+	pt::ptree terminals;
+	for(size_t i = 0; i < this->Terminals.size(); i++){
+
+		pt::ptree terminal;
+		terminal.put("",this->Terminals[i]);
+
+		terminals.push_back(std::make_pair("",terminal));
+
 	}
-	for (auto i=Rules.begin(); i != Rules.end(); i++){
-		boost::property_tree::ptree headtree;
-		for (auto j=i->second.begin(); j!=i->second.end(); j++){
-			boost::property_tree::ptree bodytree;
-			std::string body = "";
-			for (auto k = j->begin(); k!= j->end(); k++){
-				if (k != j->begin()){
-					body.push_back('|');
-				}
-				body += *k;
+	root.add_child("Terminals",terminals);
+
+	pt::ptree productions;
+	for(auto const& ent1 : this->Rules) {
+
+		for(size_t i = 0; i < ent1.second.size(); i++){
+			pt::ptree production;
+			production.put("head",ent1.first);
+
+			pt::ptree body;
+			for(size_t j = 0; j < ent1.second[i].size(); j++){
+				pt::ptree bn;
+				bn.put("",ent1.second[i][j]);
+				body.push_back(std::make_pair("",bn));
 			}
-			bodytree.put("",body);
-			headtree.push_back(std::make_pair("",bodytree));
+			production.add_child("body",body);
+
+			productions.push_back(std::make_pair("",production));
 		}
-		std::string foo = "";
-		foo += i->first;
-		RuleTrees.add_child(foo,headtree);
+
+
+
 	}
+	root.add_child("Productions",productions);
+	root.put("Start",this->Start);
 
-	GrammarTree.add_child("Variables",VariablesTree);
-	GrammarTree.add_child("Terminals",TerminalsTree);
-	GrammarTree.add_child("Rules",RuleTrees);
-
-	std::string foo = "";
-	foo += GetStart();
-	GrammarTree.put("Start",foo);
-
-	root.add_child("Grammar",GrammarTree);
-	boost::property_tree::write_json(filename,root);
+	pt::write_json(filename, root);
 	return true;
 }
 
