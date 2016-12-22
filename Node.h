@@ -18,7 +18,7 @@ using namespace std;
 class Node {
 public:
 	Node(string info);
-	Node(string info, Node* parent);
+	Node(string info, std::shared_ptr<Node> parent);
 
 	virtual ~Node();
 

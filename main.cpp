@@ -7,47 +7,56 @@
 
 #include "Grammar.h"
 #include "ll1parser.h"
+#include "CYK.h"
+#include "ParseTree.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <stdlib.h>
 
 int main(int argc, char *argv[]){
-	Grammar g;
-	if(argc < 1){
-		g.ParseGrammar("test.json");
-	}
-	else{
-		g.ParseGrammar(argv[1]);
-	}
-	g.print(std::cout);
-	LL1Parser p = LL1Parser(&g);
-	p.Print(std::cout);
-	word test;
+
+	Grammar gram;
+
+
 	if(argc < 2){
-		test = {"foo","bar"};
+		gram.ParseGrammar("CNF.json");
 	}
+
 	else{
-		std::ifstream myFile;
-		myFile.open(argv[2]);
-		if(!myFile.is_open()){
+		gram.ParseGrammar(argv[1]);
+	}
+	gram.SaveGrammar("Test.json");
+	CYK alg;
+	string reader;
+	while(true){
+		cout << "Waiting for input:" << endl;
+		cin >> reader;
+		if(reader == "-quit"){
+			cout <<"Terminated" <<endl;
 			return 0;
 		}
-		std::string input;
-		myFile >> input;
-		symbol sym;
-		for(auto i = input.begin(); i < input.end(); i++){
-			if(*i == '|'){
-				test.push_back(sym);
-				sym.clear();
+		else if(reader == "-print"){
+			gram.print(std::cout);
+		}
+		else{
+
+			if(alg(reader,gram)){
+				alg.print_table();
+				ParseTree tree = alg.get_parseTrees(gram)[0];
+				tree.to_dot("tree.dot");
+				std::system("dot -Tpng -O tree.dot");
+				std::system("xdg-open tree.dot.png");
+
+				cout << reader << " is in Grammar" << endl;
 			}
 			else{
-				sym.push_back(*i);
+				alg.print_table();
+				cout << reader << " is not in Grammar" << endl;
 			}
 		}
-		test.push_back(sym);
-		
 	}
-	std::cout<<p.Parse(test)<<std::endl;
 	return 0;
 }
 

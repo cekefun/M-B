@@ -11,7 +11,7 @@ Node::Node(string info):info(info),parent(0) {
 
 }
 
-Node::Node(string info,Node* parent):info(info),parent(parent){
+Node::Node(string info,std::shared_ptr<Node> parent):info(info),parent(parent){
 
 }
 

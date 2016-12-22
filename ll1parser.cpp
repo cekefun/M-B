@@ -186,7 +186,7 @@ word LL1Parser::epsilonable(symbol s){
 	return {_error};
 }
 
-ParseTree LL1Parser::getTree(word toParse){
+std::shared_ptr<ParseTree> LL1Parser::getTree(word toParse){
 	std::vector<symbol> Stack;
 	Stack.push_back(EOS);
 	Stack.push_back(grammar->GetStart());
@@ -208,12 +208,12 @@ ParseTree LL1Parser::getTree(word toParse){
 		*/
 
 		if(sym == toParse.end()){
-			return ParseTree(root);
+			return std::shared_ptr<ParseTree>(new ParseTree(root));
 		}
 		symbol top = Stack.back();
 		if(grammar->IsTerminal(top) or top == EOS){
 			if(top != *sym){
-				return ParseTree(root);
+				return std::shared_ptr<ParseTree>(new ParseTree(root));
 			}
 			Stack.pop_back();
 			sym++;
@@ -224,19 +224,17 @@ ParseTree LL1Parser::getTree(word toParse){
 			word rule = table.at(m).at(n);
 			word toCheck={_error};
 			if (rule == toCheck){
-				return ParseTree(root);
+				return std::shared_ptr<ParseTree>(new ParseTree(root));;
 			}
 			else{
 				Stack.pop_back();
-				std::cout<<"voor Next"<<std::endl;
 				std::shared_ptr<Node> parent = getNext(top,root);
-				std::cout<<"na Next"<<std::endl;
 				if(rule.empty()){
-					std::shared_ptr<Node> child(new Node("",parent.get()));
+					std::shared_ptr<Node> child(new Node(""));
 					parent->add_child(child);
 				}
 				for(auto i = rule.begin(); i< rule.end(); i++){
-					std::shared_ptr<Node> child(new Node(*i,parent.get()));
+					std::shared_ptr<Node> child(new Node(*i));
 					parent->add_child(child);
 				}
 
@@ -246,10 +244,10 @@ ParseTree LL1Parser::getTree(word toParse){
 			}
 		}
 		else{
-			return ParseTree(root);
+			return std::shared_ptr<ParseTree>(new ParseTree(root));;
 		}
 	}
-	return ParseTree(root);
+	return std::shared_ptr<ParseTree>(new ParseTree(root));
 
 }
 

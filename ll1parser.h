@@ -34,7 +34,7 @@ class LL1Parser{
 		Checks wether the word is part of the grammar or not.
 		*/
 
-		ParseTree getTree(word);
+		std::shared_ptr<ParseTree> getTree(word);
 		/*
 		Checks wether the word is part of the grammar or not. And returns the parsetree
 		 */
