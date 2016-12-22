@@ -185,3 +185,89 @@ word LL1Parser::epsilonable(symbol s){
 
 	return {_error};
 }
+
+ParseTree LL1Parser::getTree(word toParse){
+	std::vector<symbol> Stack;
+	Stack.push_back(EOS);
+	Stack.push_back(grammar->GetStart());
+	toParse.push_back(EOS);
+	std::shared_ptr<Node> root(new Node(grammar->GetStart()));
+
+	word::iterator sym = toParse.begin();
+	while(!Stack.empty()){
+		/*
+		std::cout<<"String: ";
+		for(auto i = sym; i!= toParse.end(); i++){
+			std::cout<<*i <<" ";
+		}
+		std::cout<<std::endl<<"Stack: ";
+		for(auto i = Stack.begin(); i != Stack.end(); i++){
+			std::cout << *i<<" ";
+		}
+		std::cout<<std::endl;
+		*/
+
+		if(sym == toParse.end()){
+			return ParseTree(root);
+		}
+		symbol top = Stack.back();
+		if(grammar->IsTerminal(top) or top == EOS){
+			if(top != *sym){
+				return ParseTree(root);
+			}
+			Stack.pop_back();
+			sym++;
+		}
+		else if (grammar->IsVariable(top)){
+			int m = std::find(Variables.begin(),Variables.end(),top) - Variables.begin();
+			int n = std::find(Terminals.begin(),Terminals.end(),*sym) - Terminals.begin();
+			word rule = table.at(m).at(n);
+			word toCheck={_error};
+			if (rule == toCheck){
+				return ParseTree(root);
+			}
+			else{
+				Stack.pop_back();
+				std::cout<<"voor Next"<<std::endl;
+				std::shared_ptr<Node> parent = getNext(top,root);
+				std::cout<<"na Next"<<std::endl;
+				if(rule.empty()){
+					std::shared_ptr<Node> child(new Node("",parent.get()));
+					parent->add_child(child);
+				}
+				for(auto i = rule.begin(); i< rule.end(); i++){
+					std::shared_ptr<Node> child(new Node(*i,parent.get()));
+					parent->add_child(child);
+				}
+
+				for(auto i = rule.rbegin(); i < rule.rend(); i++){
+					Stack.push_back(*i);
+				}
+			}
+		}
+		else{
+			return ParseTree(root);
+		}
+	}
+	return ParseTree(root);
+
+}
+
+std::shared_ptr<Node> LL1Parser::getNext(symbol next,std::shared_ptr<Node> currentNode){
+	if(currentNode->get_children().empty()){
+		if(currentNode->get_info() == next){
+			return currentNode;
+		}
+		else{
+			return std::shared_ptr<Node>(nullptr);
+		}
+	}
+	std::list<std::shared_ptr<Node>> children = currentNode->get_children();
+	for(auto i = children.begin(); i!= children.end(); i++){
+		std::shared_ptr<Node> child= getNext(next,*i);
+		if(child.get() != nullptr){
+			return child;
+		}
+	}
+	return std::shared_ptr<Node>(nullptr);
+}
