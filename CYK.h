@@ -38,7 +38,7 @@ public:
 	virtual ~CYK();
 	// Default destructor
 
-	bool operator()(string strng, Grammar& grammar) ;
+    bool run(vector<string> strng, Grammar& grammar) ;
 	/*
 	 * We overload the () operator. THis way we can call CYK as a function.
 	 * Parameter: strng: a string to be evaluated. grammar: the grammar we
@@ -47,14 +47,17 @@ public:
 	 * Returns false if not.
 	 */
 
+	bool operator()(string str, Grammar& g);
+
 	void print_table();
+    string string_table();
 
 	vector<ParseTree> get_parseTrees(Grammar& gram);
 
 private:
 
 	map<string,vector<string>> reverse_dic(Grammar& grammar) const;
-	vector<vector<string>> basis(string& str, Grammar& g);
+	vector<vector<string>> basis(vector<string> & str, Grammar& g);
 	vector<string> calc_X(Grammar& g, int i, int j);
 	void print_nodes();
 

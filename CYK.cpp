@@ -6,6 +6,7 @@
  */
 
 #include "CYK.h"
+#include <math.h>
 
 CYK::CYK(){
 
@@ -15,6 +16,21 @@ CYK::~CYK() {
 }
 
 bool CYK::operator()(string str, Grammar& g){
+
+	vector<string> split;
+
+	for(size_t i = 0 ; i < str.size() ; i++){
+		string temp = "";
+		temp += str[i];
+		split.push_back(temp);
+	}
+
+    return this->run(split,g);
+
+
+}
+
+bool CYK::run(vector<string> str, Grammar& g){
 
 	tree_table.clear();
 
@@ -52,16 +68,59 @@ bool CYK::operator()(string str, Grammar& g){
 
 void CYK::print_table(){
 
-	for(size_t i = 0; i < table.size(); i++){
-		for(size_t k = 0 ; k < table[i].size();k++){
-				cout << "{";
-			for(size_t l = 0; l <table[i][k].size();l++){
-				cout<< table[i][k][l] << ",";
-			}
-			cout << "}";
-		}
-		cout << endl;
-	}
+    cout << string_table();
+
+}
+
+string CYK::string_table(){
+
+    stringstream ss;
+
+    int big = 0;
+
+    for(size_t i = 0; i < table.size(); i++){
+
+        for(size_t k = 0 ; k < table[i].size();k++){
+            int med = 0;
+            for(size_t l = 0; l <table[i][k].size();l++){
+
+                 med += table[i][k][l].size(); // biggest symbol
+
+            }
+            med += table[i][k].size() * 2 -2;
+            if (big < med){
+
+                big = med;
+            }
+
+        }
+
+
+    }
+    for (int i = table.size() - 1; i >= 0; i--){
+        for (size_t k = 0 ; k < table[i].size();k++){
+            ss << "|{";
+            string tmpstring = "";
+
+            for (size_t l = 0; l <table[i][k].size();l++){
+
+                tmpstring += table[i][k][l];
+
+
+                if(l != table[i][k].size() - 1 ){
+                tmpstring +=  ", ";
+                }
+
+            }
+            int rest = round((big - tmpstring.size())/2);
+            ss << string(rest,' ') << tmpstring << string(rest,' ');
+            ss << "}|";
+        }
+
+        ss << "\n";
+    }
+
+    return ss.str();
 }
 
 vector<ParseTree> CYK::get_parseTrees(Grammar& gram){
@@ -80,18 +139,16 @@ vector<ParseTree> CYK::get_parseTrees(Grammar& gram){
 	return result;
 }
 
-vector<vector<string>> CYK::basis(string& str, Grammar& g ){
+vector<vector<string>> CYK::basis(vector<string> & str, Grammar& g ){
 
 	map<string,vector<string>> reverse = reverse_dic(g);
 	vector<vector<string>> result;
 	vector<vector <std::shared_ptr<Node> >> basis;
 	for(size_t i = 0 ; i < str.size(); i++){
 
-		stringstream ss;
-		string s;
-		char c = str[i];
-		ss << c;
-		ss >> s;
+
+		string s = str[i];
+
 
 
 		vector<string> head = reverse[s]; // possible parents of our leafs.

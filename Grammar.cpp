@@ -10,6 +10,11 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/foreach.hpp>
 
+using symbol = std::string;
+using word = std::vector<symbol>;
+
+using namespace std;
+
 Grammar::Grammar():Start{NULL} {
 
 }
@@ -83,7 +88,6 @@ std::vector<symbol> Grammar::GetVariables(){
 std::vector<symbol> Grammar::GetTerminals(){
 	return Terminals;
 }
-
 std::map<symbol,std::vector<word> > Grammar::GetRules(){
 	return Rules;
 }
@@ -104,7 +108,6 @@ bool Grammar::ParseGrammar(std::string filename){
 	boost::property_tree::ptree parsetree;
 	boost::property_tree::read_json(filename,parsetree);
 	bool succes = true;
-
 	BOOST_FOREACH(boost::property_tree::ptree::value_type &v, parsetree.get_child("Variables")){
 		bool added = AddVariable(v.second.data());
 		if(added == false){
