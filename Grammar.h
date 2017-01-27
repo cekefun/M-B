@@ -38,11 +38,29 @@ public:
 	void print(std::ostream& );
 	//friend std::ostream& operator<<(std::ostream&, const Grammar&);
 
+	void convertToCNF();
+
 private:
 	symbol Start;
 	std::vector<symbol> Variables;
 	std::vector<symbol> Terminals;
 	std::map<symbol,std::vector<word>> Rules;
+
+	// member functions for CNF
+	void eliminateUselessVars();
+	bool findStartSymbolInProductions();
+
+	void removeNullProductions();
+	std::vector<symbol> findNullables();
+
+	void removeUnitProductions();
+	std::map<symbol, symbol> findUnitProductions();
+
+	void removeLongBodies();
+	std::map<word, std::vector<symbol>> findLongBodies();
+
+	void removeMixedBodies();
+	std::set<symbol> findMixedBodies();
 };
 
 
