@@ -12,7 +12,7 @@ void Grammar::convertToCNF() {
 //	std::cout << "Converting Grammar to CNF" << std::endl;
 
 //	std::cout << "*** STEP 0 ***" << std::endl;
-//	eliminateUselessVars();
+	eliminateUselessVars();
 
 //	std::cout << "*** STEP 1 ***" << std::endl;
 	// step 1
