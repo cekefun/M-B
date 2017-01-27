@@ -162,7 +162,7 @@ word LL1Parser::epsilonable(symbol s){
 	std::vector<word> possibleRules = {};
 
 	for(std::vector<word>::iterator word = Rules.begin(); word != Rules.end(); word++){
-		for(word::iterator sym = word->begin(); sym != word->end(); word++){
+		for(word::iterator sym = word->begin(); sym != word->end(); sym++){
 			if(grammar->IsTerminal(*sym)){
 				break;
 			}
