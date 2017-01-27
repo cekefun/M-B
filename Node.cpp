@@ -35,3 +35,13 @@ list<shared_ptr<Node>> Node::get_children(){
 
 	return this->children;
 }
+
+void Node::to_lisp(std::ostream& out){
+	out<< '(';
+	out<< this->info;
+	for(auto i = this->children.begin(); i != this->children.end();i++){
+		out<<' ';
+		(*i)->to_lisp(out);
+	}
+	out<<')';
+}

@@ -52,3 +52,13 @@ void ParseTree::to_dot(string filename) {
 	}
 }
 
+void ParseTree::to_lisp(string filename){
+	ofstream write(filename);
+
+		if(write.is_open()){
+
+			this->root->to_lisp(write);
+
+		}
+}
+

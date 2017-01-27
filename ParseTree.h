@@ -17,6 +17,7 @@ public:
 	ParseTree(shared_ptr<Node> root);
 
 	void to_dot(string filename);
+	void to_lisp(string filename);
 
 	virtual ~ParseTree();
 

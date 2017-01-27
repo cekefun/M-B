@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
@@ -27,6 +28,8 @@ public:
 	string get_info();
 
 	list<std::shared_ptr<Node>> get_children();
+
+	void to_lisp(std::ostream&);
 
 private:
 
