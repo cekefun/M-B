@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "/home/robbe/workspace/mb/src/Lexer/Lexer.h"
+#include "Lexer.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
