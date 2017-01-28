@@ -97,6 +97,7 @@ void MainWindow::on_LL1Parse_clicked(){
 
         ui->IsInGrammarLabel->setText("Is in Grammar");
         this->tree = *alg.getTree(vec);
+	tree.to_dot("tree.dot");
         std::system("dot -Tpng -O tree.dot");
         //std::system("xdg-open tree.dot.png");
         QPixmap pixmap("tree.dot.png");
@@ -132,6 +133,7 @@ void MainWindow::on_LL1Parse_2_clicked(){
 
         ui->RealTimeLabel->setText("Is in Grammar");
         this->tree = *alg.getTree(vec);
+	tree.to_dot("tree.dot");
         std::system("dot -Tpng -O tree.dot");
         //std::system("xdg-open tree.dot.png");
         QPixmap pixmap("tree.dot.png");
