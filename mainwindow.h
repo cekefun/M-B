@@ -46,6 +46,8 @@ private slots:
 
     void on_ExportLispe_clicked();
 
+    void on_SaveCNF_clicked();
+
 private:
     Ui::MainWindow *ui;
 

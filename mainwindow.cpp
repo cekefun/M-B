@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "Lexer.h"
+#include "/home/robbe/workspace/mb/src/Lexer/Lexer.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -37,6 +37,13 @@ void MainWindow::on_ApplyButton_clicked(){
     gram.print(stream);
     QString qstr = QString::fromStdString(stream.str());
     ui->GrammarBrowser->setText(qstr);
+
+    //TO CNF
+    gram.convertToCNF();
+    stringstream stream2;
+    gram.print(stream2);
+    qstr = QString::fromStdString(stream2.str());
+    ui->CNFBrowser->setText(qstr);
 }
 
 void MainWindow::on_CYKParse_clicked()
@@ -97,7 +104,6 @@ void MainWindow::on_LL1Parse_clicked(){
 
         ui->IsInGrammarLabel->setText("Is in Grammar");
         this->tree = *alg.getTree(vec);
-	tree.to_dot("tree.dot");
         std::system("dot -Tpng -O tree.dot");
         //std::system("xdg-open tree.dot.png");
         QPixmap pixmap("tree.dot.png");
@@ -133,7 +139,6 @@ void MainWindow::on_LL1Parse_2_clicked(){
 
         ui->RealTimeLabel->setText("Is in Grammar");
         this->tree = *alg.getTree(vec);
-	tree.to_dot("tree.dot");
         std::system("dot -Tpng -O tree.dot");
         //std::system("xdg-open tree.dot.png");
         QPixmap pixmap("tree.dot.png");
@@ -184,9 +189,6 @@ void MainWindow::on_exportDOT_clicked()
 }
 
 
-
-
-
 void MainWindow::on_ExportLispe_clicked(){
 
     QString name  = QFileDialog::getSaveFileName(this,
@@ -195,4 +197,13 @@ void MainWindow::on_ExportLispe_clicked(){
 
 
     tree.to_lisp(name.toStdString());
+}
+
+void MainWindow::on_SaveCNF_clicked(){
+
+    QString name  = QFileDialog::getSaveFileName(this,
+            tr("Save CNF"), "",
+            tr("json files (*.json);;All Files (*)"));
+
+    gram.SaveGrammar(name.toStdString());
 }
