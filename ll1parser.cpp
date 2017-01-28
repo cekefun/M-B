@@ -299,38 +299,6 @@ bool LL1Parser::Parse(word toParse){
 	return true;
 }
 
-word LL1Parser::epsilonable(symbol s){
-	if(grammar->IsRule(s,{})){
-		return {};
-	}
-	std::vector<word> Rules = grammar->GetRules()[s];
-	std::vector<word> possibleRules = {};
-
-	for(std::vector<word>::iterator word = Rules.begin(); word != Rules.end(); word++){
-		for(word::iterator sym = word->begin(); sym != word->end(); sym++){
-			if(grammar->IsTerminal(*sym) or *sym == s){
-				break;
-			}
-			if(sym == word->end()-1){
-				possibleRules.push_back(*word);
-			}
-		}
-	}
-
-	for(std::vector<word>::iterator word = possibleRules.begin(); word != possibleRules.end(); word++){
-		for(word::iterator sym = word->begin(); sym != word->end(); sym ++){
-			if(epsilonable(*sym).front() == _error){
-				break;
-			}
-			if(sym == word->end()-1){
-				return *word;
-			}
-		}
-	}
-
-	return {_error};
-}
-
 std::shared_ptr<ParseTree> LL1Parser::getTree(word toParse){
 	std::vector<symbol> Stack;
 	Stack.push_back(EOS);
