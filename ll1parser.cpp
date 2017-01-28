@@ -45,28 +45,173 @@ bool LL1Parser::setGrammar(Grammar *gram){
 }
 
 bool LL1Parser::CreateTable(){
+	this->CreateFirstTable();
+	this->CreateSecondTable();
 	table = {};
-	for (auto m = Variables.begin(); m < Variables.end(); m++){
+	auto t = Terminals;
+	t.push_back(EOS);
+	for(auto m = Variables.begin(); m< Variables.end(); m++){
 		table.push_back({});
-		for(auto n = Terminals.begin(); n < Terminals.end(); n++){
+		for (auto n = t.begin(); n != t.end(); n++){
 			word solution = {_error};
-			auto rules = grammar->GetRules()[*m];
-			for (auto i = rules.begin(); i < rules.end(); i++){
-				if (i->empty()){
-					solution = *i;
+			auto possibleRules = grammar->GetRules()[*m];
+			for(auto rule = possibleRules.begin(); rule != possibleRules.end(); rule ++){
+				if(secondTable[*m].find(*n) != secondTable[*m].end()){
+					bool succes = true;
+					for(auto a = rule->begin(); a != rule->end(); a++){
+						if(firstTable[*a].find("") == firstTable[*a].end()){
+							succes = false;
+						}
+					}
+					if(succes){
+						solution = {};
+					}
+				}
+
+				if(rule->empty()){
 					continue;
 				}
-				if (i->front()==*n){
-					solution = *i;
-					break;
+				if(firstTable[rule->front()].find(*n) != firstTable[rule->front()].end() or rule->front() == *n){
+					solution = *rule;
 				}
+
 			}
 			table.back().push_back(solution);
 		}
-		//EOS
-		table.back().push_back(epsilonable(*m));
 	}
+
+
 	return true;
+}
+
+void LL1Parser::CreateFirstTable(){
+	std::vector<symbol> variables = grammar->GetVariables();
+	bool replaced = false;
+	auto rules = grammar->GetRules();
+	do{
+		replaced = false;
+		for(auto i = variables.begin(); i < variables.end();i++){
+			auto rulesi = rules.at(*i);
+			for(auto j = rulesi.begin(); j < rulesi.end(); j++){
+
+				if(j->empty()){
+					if(firstTable[*i].find("")== firstTable[*i].end()){
+						firstTable[*i].insert("");
+						replaced = true;
+					}
+					continue;
+				}
+				else if(grammar->IsTerminal(j->front())){
+					if(firstTable[*i].find(j->front())== firstTable[*i].end()){
+						firstTable[*i].insert(j->front());
+						replaced = true;
+					}
+				}
+				else{
+					bool nextCharacter = false;
+					for(auto k = j->begin(); k < j->end(); k++){
+						if(grammar->IsTerminal(*k)){
+							break;
+						}
+						for(auto l = firstTable[*k].begin(); l != firstTable[*k].end(); l++){
+							if(l->empty()){
+								nextCharacter = true;
+							}
+							else{
+								if(firstTable[*i].find(*l)== firstTable[*i].end()){
+									firstTable[*i].insert(*l);
+									replaced = true;
+								}
+							}
+						}
+						if(!nextCharacter){
+							break;
+						}
+					}
+				}
+			}
+		}
+	}while(replaced);
+}
+
+void LL1Parser::CreateSecondTable(){
+
+	std::vector<symbol> variables = grammar->GetVariables();
+	auto rules = grammar->GetRules();
+	secondTable[grammar->GetStart()].insert(EOS);
+
+	bool replaced = false;
+	do{
+		replaced = false;
+		for(auto i = rules.begin(); i != rules.end(); i++){
+			for(auto j = i->second.begin(); j != i->second.end(); j++){
+				for(auto k = j->begin(); k< j->end(); k++){
+					if(grammar->IsTerminal(*k)){
+						continue;
+					}
+					if(k == j->end()-1){
+						auto toAddEps = secondTable[i->first];
+						for(auto m = toAddEps.begin(); m != toAddEps.end(); m++){
+							if(secondTable[*k].find(*m)== secondTable[*k].end()){
+								secondTable[*k].insert(*m);
+								replaced = true;
+							}
+						}
+						continue;
+					}
+					if(grammar->IsTerminal(*(k+1))){
+						if(secondTable[*k].find(*(k+1))== secondTable[*k].end()){
+							secondTable[*k].insert(*(k+1));
+							replaced = true;
+						}
+					}
+
+					if(grammar->IsVariable(*(k+1))){
+						auto toAdd = firstTable[*(k+1)];
+						for (auto l = toAdd.begin(); l != toAdd.end(); l++){
+							if(l->empty()){
+								bool nextVariable = false;
+								for(auto f = k+1; f != j->end(); f++){
+									nextVariable = false;
+									for(auto t = firstTable[*f].begin(); t != firstTable[*f].end(); t++){
+										if(t->empty()){
+											nextVariable = true;
+										}
+
+										else{
+											if(secondTable[*k].find(*t)== secondTable[*k].end()){
+												secondTable[*k].insert(*t);
+												replaced = true;
+											}
+										}
+
+									}
+
+									if(!nextVariable){
+										break;
+									}
+
+								}
+								if(nextVariable){
+									for(auto f = secondTable[i->first].begin(); f != secondTable[i->first].end(); f++){
+										if(secondTable[*k].find(*f)== secondTable[*k].end()){
+											secondTable[*k].insert(*f);
+											replaced = true;
+										}
+									}
+								}
+							}
+							else if(secondTable[*k].find(*l)== secondTable[*k].end()){
+								secondTable[*k].insert(*l);
+								replaced = true;
+							}
+
+						}
+					}
+				}
+			}
+		}
+	}while(replaced);
 }
 
 bool LL1Parser::Print(std::ostream &out){
@@ -163,7 +308,7 @@ word LL1Parser::epsilonable(symbol s){
 
 	for(std::vector<word>::iterator word = Rules.begin(); word != Rules.end(); word++){
 		for(word::iterator sym = word->begin(); sym != word->end(); sym++){
-			if(grammar->IsTerminal(*sym)){
+			if(grammar->IsTerminal(*sym) or *sym == s){
 				break;
 			}
 			if(sym == word->end()-1){

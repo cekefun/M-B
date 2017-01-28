@@ -43,6 +43,8 @@ class LL1Parser{
 		word epsilonable(symbol);
 		bool CreateTable();
 		std::shared_ptr<Node> getNext(symbol,std::shared_ptr<Node>);
+		void CreateFirstTable();
+		void CreateSecondTable();
 
 		Grammar *grammar;
 		symbol _error;
@@ -50,6 +52,8 @@ class LL1Parser{
 		std::vector<symbol> Variables;
 		std::vector<symbol> Terminals;
 		std::vector<std::vector<word>> table;
+		std::map<symbol,std::set<symbol> > firstTable;
+		std::map<symbol,std::set<symbol> > secondTable;
 
 
 };
