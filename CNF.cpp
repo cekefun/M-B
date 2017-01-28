@@ -45,11 +45,12 @@ void Grammar::convertToCNF() {
 }
 
 void Grammar::eliminateUselessVars() {
-	// first generating
+	eliminateNonGenerating();
+	eliminateNonReachable();
+}
 
-	// find generating symbols
+void Grammar::eliminateNonGenerating() {
 	std::set<symbol> generating;
-	std::vector<symbol> vars = this->GetVariables();
 	bool newfound;
 	do {
 		newfound = false;
@@ -86,35 +87,41 @@ void Grammar::eliminateUselessVars() {
 	std::cout << std::endl;
 	*/
 
-	// eliminate nongenerating symbols
+	std::vector<symbol> vars = this->GetVariables();
+	std::set<symbol> varset(vars.begin(), vars.end());
 
-	for ( auto v: this->GetVariables() ) {
-		if ( std::find( generating.begin(), generating.end(), v ) != generating.end() ) {
-			continue;
-		}
+	std::set<symbol> nongen;
+	std::set_difference( varset.begin(), varset.end(), generating.begin(), generating.end(), \
+		std::inserter(nongen, nongen.begin()));
 
-		// eliminate this var
+	for (symbol v: nongen) {
+		// eliminate each symbol
 		for (auto r: Rules) {
 			std::set<word> rulestodelete;
 			for (auto w: r.second) {
 				if ( std::find(w.begin(), w.end(), v ) != w.end() ) {
 					rulestodelete.insert(w);
+					continue;
 				}
 			}
 			for (auto it: rulestodelete) {
 				this->DeleteRule(r.first, it);
 			}
 		}
-
 		this->Rules.erase(v);
-		this->DeleteVariable(v);
+		if ( IsTerminal(v) ) {
+			this->DeleteTerminal(v);
+		} else if ( IsVariable(v) ) {
+			this->DeleteVariable(v);
+		}
 	}
+}
 
-	// now continue for reachable
-
+void Grammar::eliminateNonReachable() {
 	std::set<symbol> reachable;
 	reachable.insert( this->GetStart() );
 
+	bool newfound;
 	do {
 		newfound = false;
 		std::set<symbol> tempreach = reachable;
@@ -143,13 +150,27 @@ void Grammar::eliminateUselessVars() {
 
 	// eliminate nonreachable symbols
 
-	std::set<symbol> varstodelete;
-	for ( auto v: this->GetVariables() ) {
-		if ( std::find( reachable.begin(), reachable.end(), v ) != reachable.end() ) {
-			continue;
-		}
+	std::vector<symbol> vars = this->GetVariables();
+	std::set<symbol> symbolset = std::set<symbol>(vars.begin(), vars.end());
+	std::vector<symbol> terms = this->GetTerminals();
+	std::set<symbol> termset = std::set<symbol>(terms.begin(), terms.end());
+	symbolset.insert(termset.begin(), termset.end());
+	std::set<symbol> nonreach;
+	std::set_difference( symbolset.begin(), symbolset.end(), reachable.begin(), reachable.end(), \
+		std::inserter(nonreach, nonreach.begin()));
 
-		// eliminate this var
+	/*
+	std::cout << "Non-Reachable symbols: ";
+	for (auto it: nonreach) {
+		std::cout << it << " ";
+	}
+	std::cout << std::endl;
+	*/
+
+	// eliminate nongenerating symbols
+
+	for (symbol v: nonreach) {
+		// eliminate each symbol
 		for (auto r: Rules) {
 			std::set<word> rulestodelete;
 			for (auto w: r.second) {
@@ -161,52 +182,13 @@ void Grammar::eliminateUselessVars() {
 				this->DeleteRule(r.first, it);
 			}
 		}
-
 		this->Rules.erase(v);
-		varstodelete.insert(v);
-	}
-
-	for (auto it: varstodelete) {
-		this->DeleteVariable(it);
-	}
-
-	std::set<symbol> termstodelete;
-	for ( auto v: this->GetTerminals() ) {
-		if ( reachable.find(v) != reachable.end() ) {
-			continue;
-		}
-
-		// eliminate this var
-		for (auto r: Rules) {
-			std::set<word> rulestodelete;
-			for (auto w: r.second) {
-				if (std::find(w.begin(), w.end(), v) != w.end()) {
-					rulestodelete.insert(w);
-				}
-			}
-			for (auto it: rulestodelete) {
-				this->DeleteRule(r.first, it);
-			}
-		}
-
-		termstodelete.insert(v);
-	}
-	for (auto it: termstodelete) {
-		this->DeleteTerminal(it);
-	}
-
-}
-
-bool Grammar::findStartSymbolInProductions() {
-	for (auto it: Rules) {
-		for (auto it2: it.second) {
-			// try to find symbol in word
-			if ( std::find( it2.begin(), it2.end(), this->Start ) != it2.end()) {
-				return true;
-			}
+		if ( IsTerminal(v) ) {
+			this->DeleteTerminal(v);
+		} else if ( IsVariable(v) ) {
+			this->DeleteVariable(v);
 		}
 	}
-	return false;
 }
 
 void Grammar::removeNullProductions() {

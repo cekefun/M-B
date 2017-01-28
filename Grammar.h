@@ -48,6 +48,9 @@ private:
 
 	// member functions for CNF
 	void eliminateUselessVars();
+	void eliminateNonGenerating();
+	void eliminateNonReachable();
+
 	bool findStartSymbolInProductions();
 
 	void removeNullProductions();
