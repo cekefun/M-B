@@ -57,7 +57,7 @@ private:
 	std::vector<symbol> findNullables();
 
 	void removeUnitProductions();
-	std::map<symbol, symbol> findUnitProductions();
+	std::map<symbol, std::vector<word>> findUnitProductions();
 
 	void removeLongBodies();
 	std::map<word, std::vector<symbol>> findLongBodies();
