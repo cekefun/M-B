@@ -1,2 +1,12 @@
-generated_files/
+generated_files/CNF.o
+generated_files/CYK.o
+generated_files/Grammar.o
+generated_files/Lexer.o
+generated_files/ll1parser.o
+generated_files/main.o
+generated_files/mainwindow.o
+generated_files/moc_mainwindow.o
+generated_files/Node.o
+generated_files/ParseTree.o
+generated_files/Utilities
 bin/
