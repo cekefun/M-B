@@ -28,6 +28,7 @@ DESTDIR=bin #Target file directory
 OBJECTS_DIR=generated_files #Intermediate object files directory
 MOC_DIR=generated_files #Intermediate moc files directory
 
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     CYK.cpp \
@@ -35,7 +36,9 @@ SOURCES += main.cpp\
     Lexer.cpp \
     ll1parser.cpp \
     Node.cpp \
-    ParseTree.cpp
+    ParseTree.cpp \
+    CNF.cpp \
+    Utilities/Utilities.cpp
 
 HEADERS  += mainwindow.h \
     CYK.h \
@@ -43,6 +46,7 @@ HEADERS  += mainwindow.h \
     Lexer.h \
     ll1parser.h \
     Node.h \
-    ParseTree.h
+    ParseTree.h \
+    Utilities/Utilities.h
 
 FORMS    += mainwindow.ui
