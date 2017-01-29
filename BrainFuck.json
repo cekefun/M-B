@@ -19,7 +19,7 @@
 		{"head": "expression", "body": ["operator"]},
 		{"head": "expression", "body": ["loop"]},
 
-		{"head": "loop", "body": ["loop_start","expression","loop_end"]},
+		{"head": "loop", "body": ["loop_start","expression","loop_end"]}
 
 	],
 	"_comment": "Symbols may be multiple characters long, this is why each character in the body is it's own string.",
