@@ -39,11 +39,11 @@ void MainWindow::on_ApplyButton_clicked(){
     ui->GrammarBrowser->setText(qstr);
 
     //TO CNF
-    gram.convertToCNF();
+    /*gram.convertToCNF();
     stringstream stream2;
     gram.print(stream2);
     qstr = QString::fromStdString(stream2.str());
-    ui->CNFBrowser->setText(qstr);
+    ui->CNFBrowser->setText(qstr);*/
 }
 
 void MainWindow::on_CYKParse_clicked()
