@@ -40,7 +40,6 @@ class LL1Parser{
 		 */
 
 	private:
-		word epsilonable(symbol);
 		bool CreateTable();
 		std::shared_ptr<Node> getNext(symbol,std::shared_ptr<Node>);
 		void CreateFirstTable();
