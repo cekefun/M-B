@@ -3,50 +3,73 @@
 //
 
 #include "Grammar.h"
-#include "Utilities/Utilities.h"
+#include "../Utilities/Utilities.h"
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 
 void Grammar::convertToCNF() {
+	// a CFG is in the Chomsky Normal Form if the following conditions are met:
+	// The productions are in the following forms
+	// 		A -> a
+	// 		A -> BC
+	// 		S -> [epsilon]
+	// 						with A, B, C non-terminals and a terminal
+
+	// Steps to follow
+	// step 1:
+	// 		If the start symbol S occurs on some right side, create a new start symbol S’ and a new production S’ -> S
+	// step 2:
+	// 		Remove Null productions
+	// step 3:
+	// 		Remove Unit productions
+	// step 4:
+	// 		Replace each production A -> B(1)...B(n) where n > 2 with A -> B(1)C where C -> B(2)...B(n).
+	// 		Repeat this step for all productions having two or more symbols in the right side
+	// step 5:
+	// 		If the right side of any production is in the form A → aB where a is a terminal and A, B are non-terminal,
+	// 		then the production is replaced by A → XB and X → a.
+	// 		Repeat this step for every production which is in the form A → aB.
+
 //	std::cout << "Converting Grammar to CNF" << std::endl;
 
-//	std::cout << "*** STEP 0 ***" << std::endl;
+//	std::cout << "*** Useless symbol elimination ***" << std::endl;
 	eliminateUselessVars();
 
-//	std::cout << "*** STEP 1 ***" << std::endl;
 	// step 1
 	// if start symbol S occurs on some right side, make new start symbol S' and a new production S' -> S
 
-	/*
-	// check if start symbol occurs on right side
-	bool found = findStartSymbolInProductions();
-	if (found) {
-		this->AddVariable("S0"); // new start symbol
-		std::vector<symbol> *p = new std::vector<symbol>; // temporary to make word
-		p->push_back(this->Start);
-		this->AddRule("S0", *p);
-		this->SetStart("S0");
-		delete p; // free up resources
-	}
-	*/
+//	// check if start symbol occurs on right side
+//	bool found = findStartSymbolInProductions();
+//	if (found) {
+//		this->AddVariable("S0"); // new start symbol
+//		std::vector<symbol> *p = new std::vector<symbol>; // temporary to make word
+//		p->push_back(this->Start);
+//		this->AddRule("S0", *p);
+//		this->SetStart("S0");
+//		delete p; // free up resources
+//	}
 
-//	std::cout << "*** STEP 2 ***" << std::endl;
+//	std::cout << "*** Remove null productions ***" << std::endl;
 	removeNullProductions();
 
-//	std::cout << "*** STEP 3 ***" << std::endl;
+	eliminateUselessVars();
+
+//	std::cout << "*** Remove unit productions ***" << std::endl;
 	removeUnitProductions();
 
-//	std::cout << "*** STEP 4 ***" << std::endl;
+	eliminateUselessVars();
+
+//	std::cout << "*** Remove long bodies ***" << std::endl;
 	removeLongBodies();
 
-//	std::cout << "*** STEP 5 ***" << std::endl;
+	eliminateUselessVars();
+//
+//	std::cout << "*** Remove mixed bodies ***" << std::endl;
 	removeMixedBodies();
-}
 
-void Grammar::eliminateUselessVars() {
-	eliminateNonGenerating();
-	eliminateNonReachable();
+	eliminateUselessVars();
 }
 
 void Grammar::eliminateNonGenerating() {
@@ -79,14 +102,6 @@ void Grammar::eliminateNonGenerating() {
 		}
 	} while ( newfound );
 
-	/*
-	std::cout << "Generating symbols: ";
-	for (auto it: generating) {
-		std::cout << it << " ";
-	}
-	std::cout << std::endl;
-	*/
-
 	std::vector<symbol> vars = this->GetVariables();
 	std::set<symbol> varset(vars.begin(), vars.end());
 
@@ -118,6 +133,7 @@ void Grammar::eliminateNonGenerating() {
 }
 
 void Grammar::eliminateNonReachable() {
+
 	std::set<symbol> reachable;
 	reachable.insert( this->GetStart() );
 
@@ -140,14 +156,6 @@ void Grammar::eliminateNonReachable() {
 		reachable = tempreach;
 	} while ( newfound );
 
-	/*
-	std::cout << "Reachable symbols: ";
-	for (auto it: reachable) {
-		std::cout << it << " ";
-	}
-	std::cout << std::endl;
-	*/
-
 	// eliminate nonreachable symbols
 
 	std::vector<symbol> vars = this->GetVariables();
@@ -158,14 +166,6 @@ void Grammar::eliminateNonReachable() {
 	std::set<symbol> nonreach;
 	std::set_difference( symbolset.begin(), symbolset.end(), reachable.begin(), reachable.end(), \
 		std::inserter(nonreach, nonreach.begin()));
-
-	/*
-	std::cout << "Non-Reachable symbols: ";
-	for (auto it: nonreach) {
-		std::cout << it << " ";
-	}
-	std::cout << std::endl;
-	*/
 
 	// eliminate nongenerating symbols
 
@@ -189,6 +189,27 @@ void Grammar::eliminateNonReachable() {
 			this->DeleteVariable(v);
 		}
 	}
+
+}
+
+void Grammar::eliminateUselessVars() {
+
+	eliminateNonGenerating();
+
+	eliminateNonReachable();
+}
+
+bool Grammar::findStartSymbolInProductions() {
+	for (auto it: Rules) {
+		for (auto it2: it.second) {
+			// try to find symbol in word
+			if ( std::find( it2.begin(), it2.end(), this->Start ) != it2.end()) {
+				std::cout << "Found start symbol on right side of a production, new start state will be added" << std::endl;
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void Grammar::removeNullProductions() {
@@ -211,7 +232,6 @@ void Grammar::removeNullProductions() {
 	// once we have nullables, add additional rules and remove A -> [epsilon] for any A
 
 	// step 1
-//	std::cout << "Find nullable non-terminals in CFG" << std::endl;
 	std::vector<symbol> nullables = this->findNullables();
 
 	// step 2
@@ -221,6 +241,10 @@ void Grammar::removeNullProductions() {
 	for (std::pair<symbol, std::vector<word>> r: Rules) {
 		// per symbol, loop over each rule
 		for (word w: r.second) {
+			if (w.empty()) {
+				// epsilon, skip
+				continue;
+			}
 			// check which of the symbols in the word are nullable
 			// and add their indexes to a vector
 			std::vector<int> nullableindexes;
@@ -271,11 +295,9 @@ void Grammar::removeNullProductions() {
 	for (std::pair<symbol, std::vector<word>> it: Rules) {
 		// per symbol
 		for (word it2: it.second) {
-			if (it2.size() == 1) {
-				if (it2.at(0) == "") {
-					// delete rule
-					this->DeleteRule(it.first, it2);
-				}
+			if (it2.size() == 0) {
+				// delete rule
+				this->DeleteRule(it.first, it2);
 			}
 		}
 	}
@@ -289,10 +311,12 @@ std::vector<symbol> Grammar::findNullables() {
 	for (std::pair<symbol, std::vector<word>> it: Rules) {
 		// per symbol
 		for (word it2: it.second) {
-			if (it2.size() == 1) {
-				if (it2.at(0) == "") {
-					nullables.push_back(it.first);
-				}
+//			if (it2.size() == 1) {
+//				if (it2.at(0) == "") {
+//				}
+//			}
+			if (it2.empty()) {
+				nullables.push_back(it.first);
 			}
 		}
 	}
@@ -362,7 +386,7 @@ void Grammar::removeUnitProductions() {
 	// 		repeat from step 1 until all unit prods are removed
 
 	// check if there are unit productions
-	std::map<symbol, symbol> unitprods = findUnitProductions();
+	std::map<symbol, std::vector<word>> unitprods = findUnitProductions();
 
 	/*
 	// print out unit production for debug
@@ -370,7 +394,7 @@ void Grammar::removeUnitProductions() {
 	if (unitprods.size() > 0) {
 		for (auto r: unitprods) {
 			for (auto w: r.second) {
-				std::cout << r.first << " -> " << w << std::endl;
+				std::cout << r.first << " -> " << w.at(0) << std::endl;
 			}
 		}
 	}
@@ -379,17 +403,19 @@ void Grammar::removeUnitProductions() {
 	while(unitprods.size() > 0) {
 
 		for(auto up: unitprods) {
-			if ( up.first == up.second ) {
-				this->DeleteRule(up.first, std::vector<symbol>{up.second});
-				break;
-			}
-			for (auto it: Rules[up.second]) {
-				if (it.size() == 1 and IsTerminal(it.at(0))) {
-					this->AddRule(up.first, it);
-					this->DeleteRule(up.first, std::vector<symbol>{up.second});
-				} else if ( it.size() > 1 ) {
-					this->AddRule(up.first, it);
-					this->DeleteRule(up.first, std::vector<symbol>{up.second});
+			for( auto w: up.second ) {
+				if ( up.first == w.at(0) ) {
+					this->DeleteRule(up.first, w);
+					break;
+				}
+				for (auto it: Rules[w.at(0)]) {
+					if (it.size() == 1 and IsTerminal(it.at(0))) {
+						this->AddRule(up.first, it);
+						this->DeleteRule(up.first, w);
+					} else if ( it.size() > 1 ) {
+						this->AddRule(up.first, it);
+						this->DeleteRule(up.first, w);
+					}
 				}
 			}
 		}
@@ -400,14 +426,14 @@ void Grammar::removeUnitProductions() {
 
 }
 
-std::map<symbol, symbol> Grammar::findUnitProductions() {
+std::map<symbol,std::vector<word>> Grammar::findUnitProductions() {
 	// return is <symbol, symbol> -> rhs is always only one symbol
-	std::map<symbol, symbol> ret;
+	std::map<symbol,std::vector<word>> ret;
 	for (std::pair<symbol, std::vector<word>> r: Rules) {
 		for (word w: r.second) {
 			if (w.size() == 1) {
 				if (this->IsVariable(w.at(0))) {
-					ret.insert(std::make_pair(r.first, w.at(0)));
+					ret[r.first].push_back(w);
 				}
 			}
 		}
@@ -492,10 +518,8 @@ void Grammar::removeMixedBodies() {
 	for ( auto mb: mixedbodies ) {
 		// we loop over every symbol that is mixed, e.g. aB
 
-		/*
 		// print out for debug
-		std::cout << "eliminating " << mb << std::endl;
-		*/
+//		std::cout << "eliminating " << mb << std::endl;
 
 		// we make a new state Ynn and add a single transition Ynn -> mb
 		// then we loop through all productions and replace every occurence of mb with Ynn
