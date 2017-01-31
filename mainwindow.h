@@ -55,6 +55,7 @@ private:
     QString inputfile;
 
     Grammar gram;
+    Grammar gram_origin;
     ParseTree tree;
 
     void generate_tree(CYK& alg);

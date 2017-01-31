@@ -23,7 +23,7 @@ void MainWindow::on_BroweGrammar_clicked()
 
 void MainWindow::on_BrowseInput_clicked()
 {
-    inputfile = QFileDialog::getOpenFileName(this,tr("Open Input"), "/home/");
+    inputfile = QFileDialog::getOpenFileName(this,tr("Open Input"), "/home/", tr("Text Files(*.txt)"));
     ui->InputEdit->setText(inputfile);
 }
 
@@ -38,12 +38,13 @@ void MainWindow::on_ApplyButton_clicked(){
     QString qstr = QString::fromStdString(stream.str());
     ui->GrammarBrowser->setText(qstr);
 
+    this->gram_origin = gram;
     //TO CNF
-    /*gram.convertToCNF();
+    gram.convertToCNF();
     stringstream stream2;
     gram.print(stream2);
     qstr = QString::fromStdString(stream2.str());
-    ui->CNFBrowser->setText(qstr);*/
+    ui->CNFBrowser->setText(qstr);
 }
 
 void MainWindow::on_CYKParse_clicked()
@@ -61,6 +62,7 @@ void MainWindow::on_CYKParse_clicked()
 
     else{
         ui->IsInGrammarLabel->setText("Is not in Grammar");
+	this->ui->treeImage->clear();
     }
 
     QString convert = QString::fromStdString(ck.string_table());
@@ -75,25 +77,45 @@ void MainWindow::on_CYKParse_2_clicked(){
     CYK ck;
 
     string conv = ui->StringInput->text().toStdString();
-    if(ck(conv,gram)){
+    vector<string> conver = lexer::string_to_vec(conv);
 
-        ui->RealTimeLabel->setText("Is in Grammar");
-        this->generate_tree(ck);
+    if(conver.size() == 1){
+        if(ck(conv,gram)){
+
+            ui->RealTimeLabel->setText("Is in Grammar");
+            this->generate_tree(ck);
+        }
+
+        else{
+            ui->RealTimeLabel->setText("Is not in Grammar");
+        }
+
+        QString convert = QString::fromStdString(ck.string_table());
+        ui->CYKtable->setText(convert);
     }
 
     else{
-        ui->RealTimeLabel->setText("Is not in Grammar");
-    }
+        if(ck.run(conver,gram)){
 
-    QString convert = QString::fromStdString(ck.string_table());
-    ui->CYKtable->setText(convert);
+            ui->RealTimeLabel->setText("Is in Grammar");
+            this->generate_tree(ck);
+        }
+
+        else{
+            ui->RealTimeLabel->setText("Is not in Grammar");
+	    this->ui->treeImage->clear();
+        }
+
+        QString convert = QString::fromStdString(ck.string_table());
+        ui->CYKtable->setText(convert);
+    }
 
 
 }
 
 void MainWindow::on_LL1Parse_clicked(){
 
-    Grammar* gr = &this->gram;
+    Grammar* gr = &this->gram_origin;
     LL1Parser alg(gr);
 
     inputfile = ui->InputEdit->text();
@@ -104,6 +126,7 @@ void MainWindow::on_LL1Parse_clicked(){
 
         ui->IsInGrammarLabel->setText("Is in Grammar");
         this->tree = *alg.getTree(vec);
+    	tree.to_dot("tree.dot");
         std::system("dot -Tpng -O tree.dot");
         //std::system("xdg-open tree.dot.png");
         QPixmap pixmap("tree.dot.png");
@@ -115,6 +138,7 @@ void MainWindow::on_LL1Parse_clicked(){
     }
     else{
         ui->IsInGrammarLabel->setText("Is not in Grammar");
+	this->ui->treeImage->clear();
     }
 
     stringstream ss;
@@ -129,7 +153,7 @@ void MainWindow::on_LL1Parse_clicked(){
 void MainWindow::on_LL1Parse_2_clicked(){
 
 
-    Grammar* gr = &this->gram;
+    Grammar* gr = &this->gram_origin;
     LL1Parser alg(gr);
 
     string conv = ui->StringInput->text().toStdString();
@@ -139,6 +163,7 @@ void MainWindow::on_LL1Parse_2_clicked(){
 
         ui->RealTimeLabel->setText("Is in Grammar");
         this->tree = *alg.getTree(vec);
+    	tree.to_dot("tree.dot");
         std::system("dot -Tpng -O tree.dot");
         //std::system("xdg-open tree.dot.png");
         QPixmap pixmap("tree.dot.png");
@@ -150,6 +175,7 @@ void MainWindow::on_LL1Parse_2_clicked(){
     }
     else{
         ui->RealTimeLabel->setText("Is not in Grammar");
+	this->ui->treeImage->clear();
     }
 
     stringstream ss;

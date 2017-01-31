@@ -1,6 +1,6 @@
 {
 	"Variables": ["expression","loop"],
-	"Terminals": ["incr_val", "decr_val" , "incr_point", "decr_point", "loop_start", "loop_end","input","output"],
+	"Terminals": ["incr_val", "decr_val" , "incr_point", "decr_point", "loop_start", "loop_end","input","output","putchar","getchar"],
 	"Productions": [
 		{"head": "expression", "body": ["incr_val","expression"]},
 		{"head": "expression", "body": ["decr_val","expression"]},
@@ -10,6 +10,8 @@
 		{"head": "expression", "body": ["input","expression"]},
 		{"head": "expression", "body": ["output","expression"]},
 		{"head": "expression", "body": ["loop","expression"]},
+		{"head": "expression", "body": ["putchar","expression"]},
+		{"head": "expression", "body": ["getchar","expression"]},
 		{"head": "expression", "body": []},
 		{"head": "loop", "body": ["loop_start","expression","loop_end"]}
 	],
