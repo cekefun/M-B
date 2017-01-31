@@ -1,0 +1,24 @@
+{
+	"Variables": ["program","expression","operator","loop"],
+	"Terminals": ["incr_val", "decr_val" , "incr_point", "decr_point", "loop_start", "loop_end","input","output"],
+	"Productions": [
+		{"head": "program", "body": ["expression"]},
+
+		{"head": "operator", "body": ["incr_point"]},
+		{"head": "operator", "body": ["decr_point"]},
+		{"head": "operator", "body": ["incr_val"]},
+		{"head": "operator", "body": ["decr_val"]},
+		{"head": "operator", "body": ["input"]},
+		{"head": "operator", "body": ["output"]},
+
+		{"head": "expression", "body": ["expression","expression"]},
+		{"head": "expression", "body": ["operator"]},
+		{"head": "expression", "body": ["loop"]},
+
+		{"head": "loop", "body": ["loop_start","expression","loop_end"]}
+
+	],
+	"_comment": "Symbols may be multiple characters long, this is why each character in the body is it's own string.",
+	
+	"Start": "program"
+}
